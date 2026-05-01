@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Translate - Egyptian Edition</title>
+    <style>
+        /* ========================
+           I. CSS STYLES & UI/UX
+           ======================== */
+        :root {
+            --gold: #D4AF37;
+            --black: #0f0f0f;
+            --brown: #3b2f2f;
+            --dark-brown: #241b1b;
+            --glow: 0 0 10px rgba(212, 175, 55, 0.5);
+            --glow-strong: 0 0 20px rgba(212, 175, 55, 0.8), 0 0 40px rgba(212, 175, 55, 0.4);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--black);
+            color: var(--gold);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background-image: 
+                radial-gradient(circle at center, var(--brown) 0%, var(--black) 80%),
+                url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M20 0L40 40H0L20 0z' fill='%23D4AF37' fill-opacity='0.03' fill-rule='evenodd'/%3E%3C/svg%3E");
+            background-blend-mode: overlay;
+        }
+
+        header {
+            text-align: center;
+            padding: 20px;
+            border-bottom: 2px solid var(--brown);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+
+        header h1 {
+            font-family: 'Times New Roman', serif;
+            text-transform: uppercase;
+            letter-spacing: 5px;
+            text-shadow: var(--glow);
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: text-shadow 0.3s;
+        }
+
+        header h1:hover {
+            text-shadow: var(--glow-strong);
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            padding: 10px;
+        }
+
+        button {
+            background: var(--dark-brown);
+            color: var(--gold);
+            border: 1px solid var(--gold);
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        button:hover {
+            background: var(--gold);
+            color: var(--black);
+            box-shadow: var(--glow);
+            transform: scale(1.05);
+        }
+
+        .ripple {
+            position: absolute;
+            border-radius: 50%;
+            transform: scale(0);
+            animation: ripple-anim 600ms linear;
+            background-color: rgba(255, 255, 255, 0.7);
+        }
+
+        @keyframes ripple-anim {
+            to { transform: scale(4); opacity: 0; }
+        }
+
+        main {
+            display: flex;
+            flex: 1;
+            padding: 20px;
+            gap: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: rgba(36, 27, 27, 0.8);
+            border: 2px solid var(--brown);
+            border-radius: 8px;
+            box-shadow: 5px 5px 15px rgba(0,0,0,0.8);
+            backdrop-filter: blur(5px);
+        }
+
+        .panel-header {
+            padding: 15px;
+            background: var(--dark-brown);
+            border-bottom: 1px solid var(--brown);
+            font-weight: bold;
+            text-align: center;
+            letter-spacing: 2px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        textarea {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: var(--gold);
+            padding: 20px;
+            font-size: 1.2rem;
+            resize: none;
+            outline: none;
+            line-height: 1.5;
+            transition: letter-spacing 0.3s, text-shadow 0.3s;
+        }
+
+        .glyph-text {
+            font-family: 'Segoe UI Historic', 'Noto Sans Egyptian Hieroglyphs', Arial, sans-serif;
+            font-size: 1.8rem;
+        }
+
+        textarea.dense {
+            letter-spacing: -6px;
+            line-height: 1;
+        }
+
+        .swap-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #swap-btn {
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+        }
+
+        .history-container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+            width: 100%;
+            border-top: 1px solid var(--brown);
+        }
+
+        .history-item {
+            background: var(--dark-brown);
+            margin-bottom: 10px;
+            padding: 10px;
+            border-radius: 4px;
+            border-left: 4px solid var(--gold);
+            display: flex;
+            justify-content: space-between;
+            cursor: pointer;
+        }
+
+        .history-item:hover {
+            background: var(--brown);
+        }
+
+        .scrambling {
+            animation: text-scramble 0.1s infinite;
+            text-shadow: var(--glow-strong);
+        }
+
+        @keyframes text-scramble {
+            0% { opacity: 0.8; }
+            50% { opacity: 1; }
+            100% { opacity: 0.9; }
+        }
+
+        @media (max-width: 768px) {
+            main { flex-direction: column; }
+            #swap-btn { transform: rotate(90deg); }
+            #swap-btn:hover { transform: rotate(90deg) scale(1.1); }
+        }
+
+        .bg-glyph {
+            position: fixed;
+            color: rgba(212, 175, 55, 0.05);
+            font-size: 3rem;
+            z-index: -1;
+            user-select: none;
+            animation: float 20s linear infinite;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+            10% { opacity: 0.05; }
+            90% { opacity: 0.05; }
+            100% { transform: translateY(-20vh) rotate(360deg); opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="bg-animations"></div>
+
+    <header>
+        <h1 id="title" title="Bấm vào để xem Easter Egg">𓂀 Anubis Translate 𓁈</h1>
+        <div class="controls">
+            <button id="btn-random-mode">🎲 Random Mode</button>
+            <button id="btn-toggle-anim">✨ Toggle Animation: ON</button>
+            <button id="btn-dense">🧱 Dense Mode: OFF</button>
+            <button id="btn-export">💾 Export .txt</button>
+            <button id="btn-sound">🔊 Sound: ON</button>
+        </div>
+    </header>
+
+    <main>
+        <div class="panel">
+            <div class="panel-header" id="label-left">
+                <span>Tiếng Việt</span>
+                <div>
+                    <button id="btn-paste-left" style="font-size: 0.8rem;">Paste</button>
+                    <button id="btn-clear" style="font-size: 0.8rem;">Clear</button>
+                </div>
+            </div>
+            <textarea id="input-box" placeholder="Nhập văn bản cần dịch..."></textarea>
+        </div>
+
+        <div class="swap-container">
+            <button id="swap-btn" title="Đảo chiều dịch">↔</button>
+        </div>
+
+        <div class="panel">
+            <div class="panel-header" id="label-right">
+                <span>Glyph Ai Cập</span>
+                <button id="btn-copy-right" style="font-size: 0.8rem;">Copy</button>
+            </div>
+            <textarea id="output-box" class="glyph-text" readonly placeholder="𓀀𓀁𓀂..."></textarea>
+        </div>
+    </main>
+
+    <div class="history-container">
+        <h3>📜 Lịch sử Dịch (10 bản gần nhất)</h3>
+        <div id="history-list"></div>
+    </div>
+
+    <script>
+        // ----------------------------------------------------
+        // 1. DỮ LIỆU & MAPPING CHÍNH XÁC (Không trùng lặp)
+        // ----------------------------------------------------
+        
+        const providedGlyphs = Array.from("𓁆𓁇𓁈𓁉𓀀𓀁𓀂𓀃𓀄𓀅𓀆𓀇𓀈𓀉𓀊𓀋𓀌𓀍𓀎𓀏𓀐𓀑𓀒𓀓𓀔𓀕𓀖𓀗𓀘𓀙𓀚𓀛𓀜𓀝𓀞𓀟𓀠𓀡𓀢𓀣𓀤𓀥𓀦𓀧𓀨𓀩𓀪𓀫𓀬𓀻𓀼𓀽𓀾𓀿𓁀𓁁𓁂𓁃𓁄𓁅");
+        
+        // Mở rộng pool lên 800 để đủ Glyph cho bảng mã mới
+        const glyphPool = [...providedGlyphs];
+        let unicodeStart = 0x13050; 
+        while(glyphPool.length < 800) {
+            glyphPool.push(String.fromCodePoint(unicodeStart++));
+        }
+
+        const tokensToMap = [
+            // Trigraphs / Digraphs (Hoa & Thường)
+            'Ngh','ngh','NGH','Ch','ch','CH','Tr','tr','TR','Nh','nh','NH','Ng','ng','NG','Th','th','TH','Ph','ph','PH','Kh','kh','KH','Gh','gh','GH',
+            
+            // Base letters (Hoa & Thường) - Đã bổ sung J, Z, W, F
+            'A','B','C','D','Đ','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z',
+            'a','b','c','d','đ','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z',
+            
+            // Dấu phụ & thanh điệu trong hệ NFD
+            '\u0306', // ă
+            '\u0302', // â, ê, ô
+            '\u031B', // ơ, ư
+            '\u0300', // huyền
+            '\u0301', // sắc
+            '\u0309', // hỏi
+            '\u0303', // ngã
+            '\u0323', // nặng
+            
+            // Số & Ký tự cơ bản, toán học, ngoặc (Đã bổ sung đầy đủ)
+            '0','1','2','3','4','5','6','7','8','9',
+            '.',',','?','!','-',':','\n','*','/','+','"','<','>','(',')',"'",';','='
+        ];
+
+        const encodeMap = {}; 
+        const decodeMap = {}; 
+
+        let poolIndex = 0;
+        tokensToMap.forEach(token => {
+            encodeMap[token] = [];
+            // Random 3 - 6 glyph cho mỗi token
+            const numGlyphs = Math.floor(Math.random() * 4) + 3; 
+            for(let i=0; i<numGlyphs; i++) {
+                if (poolIndex >= glyphPool.length) break; // An toàn
+                const g = glyphPool[poolIndex++];
+                encodeMap[token].push(g);
+                decodeMap[g] = token;
+            }
+        });
+
+        // Space tàng hình (Zero-width space)
+        const zeroSpaces = ['\u200B', '\u2060'];
+
+        // ----------------------------------------------------
+        // 2. CORE LOGIC DỊCH
+        // ----------------------------------------------------
+        
+        function encodeToGlyph(text) {
+            let normalized = text.normalize("NFD");
+            let result = "";
+            let i = 0;
+
+            while (i < normalized.length) {
+                if (normalized[i] === ' ') {
+                    result += zeroSpaces[Math.floor(Math.random() * zeroSpaces.length)];
+                    i++;
+                    continue;
+                }
+
+                let matched = false;
+                for (let len = 3; len >= 1; len--) {
+                    if (i + len > normalized.length) continue;
+                    let sub = normalized.substring(i, i + len);
+                    
+                    if (encodeMap[sub]) {
+                        const options = encodeMap[sub];
+                        result += options[Math.floor(Math.random() * options.length)];
+                        i += len;
+                        matched = true;
+                        break;
+                    }
+                }
+
+                if (!matched) {
+                    result += normalized[i];
+                    i++;
+                }
+            }
+            return result;
+        }
+
+        function decodeToVi(text) {
+            let result = "";
+            let chars = Array.from(text); 
+            
+            for(let c of chars) {
+                if (zeroSpaces.includes(c)) {
+                    result += ' ';
+                } else if (decodeMap[c]) {
+                    result += decodeMap[c];
+                } else {
+                    result += c;
+                }
+            }
+            return result.normalize("NFC");
+        }
+
+        // ----------------------------------------------------
+        // 3. STATE & DOM ELEMENTS
+        // ----------------------------------------------------
+        let mode = 'vi2gl'; 
+        let animEnabled = true;
+        let denseMode = false;
+        let soundEnabled = true;
+        let debounceTimer;
+
+        const inputBox = document.getElementById('input-box');
+        const outputBox = document.getElementById('output-box');
+        const swapBtn = document.getElementById('swap-btn');
+        const labelLeft = document.getElementById('label-left').querySelector('span');
+        const labelRight = document.getElementById('label-right').querySelector('span');
+        const historyList = document.getElementById('history-list');
+
+        // Audio Context 
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        let audioCtx;
+
+        function playStoneSound() {
+            if (!soundEnabled) return;
+            if (!audioCtx) audioCtx = new AudioContext();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(150 + Math.random() * 50, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+            
+            gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+            
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.1);
+        }
+
+        // ----------------------------------------------------
+        // 4. HIỆU ỨNG & INTERACTION
+        // ----------------------------------------------------
+        
+        function animateTranslation(finalText, isGlyphTarget) {
+            outputBox.classList.remove('scrambling');
+            if (!animEnabled || finalText.trim() === '') {
+                outputBox.value = finalText;
+                return;
+            }
+
+            outputBox.classList.add('scrambling');
+            let chars = Array.from(finalText);
+            let steps = 0;
+            const maxSteps = 10;
+            
+            const interval = setInterval(() => {
+                outputBox.value = chars.map((c, i) => {
+                    if (c === ' ' || zeroSpaces.includes(c)) return c;
+                    if (i < (steps / maxSteps) * chars.length) return c;
+                    return providedGlyphs[Math.floor(Math.random() * providedGlyphs.length)];
+                }).join('');
+                
+                steps++;
+                if (steps > maxSteps) {
+                    clearInterval(interval);
+                    outputBox.value = finalText;
+                    outputBox.classList.remove('scrambling');
+                    saveHistory(inputBox.value, outputBox.value);
+                }
+            }, 40); 
+        }
+
+        function triggerTranslate(force = false) {
+            const txt = inputBox.value;
+            if (txt.trim() === '') {
+                outputBox.value = '';
+                return;
+            }
+
+            let result = '';
+            if (mode === 'vi2gl') result = encodeToGlyph(txt);
+            else result = decodeToVi(txt);
+
+            animateTranslation(result, mode === 'vi2gl');
+        }
+
+        inputBox.addEventListener('input', (e) => {
+            playStoneSound();
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => triggerTranslate(), 200);
+            
+            if(inputBox.value.toLowerCase().includes("ai cập") || inputBox.value.toLowerCase().includes("pharaoh")) {
+                document.body.style.boxShadow = "inset 0 0 150px var(--gold)";
+                setTimeout(() => document.body.style.boxShadow = "none", 2000);
+            }
+        });
+
+        // ----------------------------------------------------
+        // 5. NÚT CHỨC NĂNG (FEATURES)
+        // ----------------------------------------------------
+
+        swapBtn.addEventListener('click', (e) => {
+            createRipple(e, swapBtn);
+            mode = mode === 'vi2gl' ? 'gl2vi' : 'vi2gl';
+            
+            if (mode === 'vi2gl') {
+                labelLeft.innerText = "Tiếng Việt";
+                labelRight.innerText = "Glyph Ai Cập";
+                inputBox.classList.remove('glyph-text');
+                outputBox.classList.add('glyph-text');
+            } else {
+                labelLeft.innerText = "Glyph Ai Cập";
+                labelRight.innerText = "Tiếng Việt";
+                inputBox.classList.add('glyph-text');
+                outputBox.classList.remove('glyph-text');
+            }
+            
+            let temp = inputBox.value;
+            inputBox.value = outputBox.value;
+            outputBox.value = temp;
+        });
+
+        document.getElementById('btn-random-mode').addEventListener('click', (e) => {
+            createRipple(e, e.currentTarget);
+            if(mode === 'vi2gl' && inputBox.value) triggerTranslate(true);
+        });
+
+        document.getElementById('btn-toggle-anim').addEventListener('click', (e) => {
+            createRipple(e, e.currentTarget);
+            animEnabled = !animEnabled;
+            e.currentTarget.innerText = `✨ Toggle Animation: ${animEnabled ? 'ON' : 'OFF'}`;
+        });
+
+        document.getElementById('btn-dense').addEventListener('click', (e) => {
+            createRipple(e, e.currentTarget);
+            denseMode = !denseMode;
+            if(denseMode) {
+                outputBox.classList.add('dense');
+                inputBox.classList.add('dense');
+                e.currentTarget.innerText = `🧱 Dense Mode: ON`;
+            } else {
+                outputBox.classList.remove('dense');
+                inputBox.classList.remove('dense');
+                e.currentTarget.innerText = `🧱 Dense Mode: OFF`;
+            }
+        });
+
+        document.getElementById('btn-sound').addEventListener('click', (e) => {
+            createRipple(e, e.currentTarget);
+            soundEnabled = !soundEnabled;
+            e.currentTarget.innerText = `🔊 Sound: ${soundEnabled ? 'ON' : 'OFF'}`;
+        });
+
+        document.getElementById('btn-export').addEventListener('click', (e) => {
+            createRipple(e, e.currentTarget);
+            if(!outputBox.value) return;
+            const blob = new Blob([outputBox.value], {type: "text/plain;charset=utf-8"});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = "pharaoh_translation.txt";
+            a.click();
+            URL.revokeObjectURL(url);
+        });
+
+        document.getElementById('btn-clear').addEventListener('click', () => {
+            inputBox.value = '';
+            outputBox.value = '';
+        });
+
+        document.getElementById('btn-paste-left').addEventListener('click', async () => {
+            try {
+                const text = await navigator.clipboard.readText();
+                inputBox.value = text;
+                triggerTranslate();
+            } catch (err) {
+                alert("Không thể dán văn bản. Hãy cho phép quyền đọc Clipboard!");
+            }
+        });
+
+        document.getElementById('btn-copy-right').addEventListener('click', () => {
+            if(!outputBox.value) return;
+            navigator.clipboard.writeText(outputBox.value);
+            const btn = document.getElementById('btn-copy-right');
+            btn.innerText = "Copied!";
+            setTimeout(() => btn.innerText = "Copy", 1500);
+        });
+
+        // ----------------------------------------------------
+        // 6. LƯU LỊCH SỬ (LOCAL STORAGE)
+        // ----------------------------------------------------
+        function saveHistory(inText, outText) {
+            if(!inText || !outText) return;
+            let hist = JSON.parse(localStorage.getItem('egyptHistory') || '[]');
+            
+            if(hist.length > 0 && hist[0].inText === inText) return;
+
+            hist.unshift({ inText, outText, mode });
+            if (hist.length > 10) hist.pop(); 
+            
+            localStorage.setItem('egyptHistory', JSON.stringify(hist));
+            renderHistory();
+        }
+
+        function renderHistory() {
+            let hist = JSON.parse(localStorage.getItem('egyptHistory') || '[]');
+            historyList.innerHTML = '';
+            hist.forEach((item) => {
+                const div = document.createElement('div');
+                div.className = 'history-item';
+                div.innerHTML = `
+                    <div style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; padding-right:10px;">
+                        <span style="color:#aaa">${item.mode === 'vi2gl' ? 'VI' : 'GL'}:</span> ${item.inText}
+                    </div>
+                    <div class="glyph-text" style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:right;">
+                        ${item.outText}
+                    </div>
+                `;
+                div.addEventListener('click', () => {
+                    inputBox.value = item.inText;
+                    if (item.mode !== mode) document.getElementById('swap-btn').click();
+                    outputBox.value = item.outText;
+                });
+                historyList.appendChild(div);
+            });
+        }
+        
+        renderHistory();
+
+        // ----------------------------------------------------
+        // 7. EFFECTS VÀ UI THÊM
+        // ----------------------------------------------------
+        
+        function createRipple(event, button) {
+            const circle = document.createElement("span");
+            const diameter = Math.max(button.clientWidth, button.clientHeight);
+            const radius = diameter / 2;
+            circle.style.width = circle.style.height = `${diameter}px`;
+            circle.style.left = `${event.clientX - button.getBoundingClientRect().left - radius}px`;
+            circle.style.top = `${event.clientY - button.getBoundingClientRect().top - radius}px`;
+            circle.classList.add("ripple");
+            const ripple = button.querySelector(".ripple");
+            if (ripple) ripple.remove();
+            button.appendChild(circle);
+        }
+
+        const bgContainer = document.getElementById('bg-animations');
+        setInterval(() => {
+            if(document.hidden) return; 
+            const el = document.createElement('div');
+            el.className = 'bg-glyph';
+            el.innerText = providedGlyphs[Math.floor(Math.random() * providedGlyphs.length)];
+            el.style.left = Math.random() * 100 + 'vw';
+            el.style.animationDuration = (10 + Math.random() * 15) + 's';
+            el.style.fontSize = (2 + Math.random() * 4) + 'rem';
+            bgContainer.appendChild(el);
+            setTimeout(() => el.remove(), 25000);
+        }, 800);
+
+        document.getElementById('title').addEventListener('click', () => {
+            alert("Bí mật của Pharaoh: Sử dụng Zero-Width Space (\\u200B) để làm chữ dính lại nhưng vẫn decode được một cách diệu kỳ! 𓀛");
+        });
+
+    </script>
+</body>
+</html>
